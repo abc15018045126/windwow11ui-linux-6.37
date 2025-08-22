@@ -59,9 +59,10 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
     const webview = webviewRef.current;
     if (!webview) return;
 
-    // Directly load the URL. No proxy setup needed.
-    // The header stripping is handled by the main process based on the partition name.
-    webview.loadURL(url);
+    const handleDomReady = () => {
+      // Now it's safe to call loadURL, as the webview is attached and ready.
+      webview.loadURL(url);
+    };
 
     const handleLoadStart = () => setIsLoading(true);
     const handleLoadStop = () => {
@@ -74,14 +75,16 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
       setCanGoForward(webview.canGoForward());
     };
 
+    webview.addEventListener('dom-ready', handleDomReady);
     webview.addEventListener('did-start-loading', handleLoadStart);
     webview.addEventListener('did-stop-loading', handleLoadStop);
 
     return () => {
+      webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-start-loading', handleLoadStart);
       webview.removeEventListener('did-stop-loading', handleLoadStop);
     };
-  }, [partition, url, setWindowTitle]);
+  }, [url, setWindowTitle]);
 
   const navigate = (input: string) => {
     const webview = webviewRef.current;
@@ -132,7 +135,7 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
             src: 'about:blank',
             className: 'w-full h-full border-none bg-white',
             partition: partition,
-            allowpopups: true,
+            allowpopups: "true",
           })
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-zinc-400">
