@@ -263,7 +263,7 @@ const AppWindow: React.FC<AppWindowProps> = ({
         onDoubleClick={onMaximize}
       >
         <div className="flex items-center space-x-2">
-          <Icon iconName={app.icon} className="w-4 h-4" isSmall />
+          <Icon icon={app.icon} className="w-4 h-4" isSmall />
           <span className="text-xs font-medium truncate">{app.title}</span>
         </div>
         <div className="flex items-center space-x-1">
@@ -272,7 +272,7 @@ const AppWindow: React.FC<AppWindowProps> = ({
             className="p-1.5 hover:bg-white/20 rounded-sm"
             title="Minimize"
           >
-            <Icon iconName="minimize" className="w-4 h-4" />
+            <Icon icon="minimize" className="w-4 h-4" />
           </button>
           <button
             onClick={onMaximize}
@@ -280,7 +280,7 @@ const AppWindow: React.FC<AppWindowProps> = ({
             title={app.isMaximized ? 'Restore' : 'Maximize'}
           >
             <Icon
-              iconName={app.isMaximized ? 'restore' : 'maximize'}
+              icon={app.isMaximized ? 'restore' : 'maximize'}
               className="w-4 h-4"
             />
           </button>
@@ -289,7 +289,7 @@ const AppWindow: React.FC<AppWindowProps> = ({
             className="p-1.5 hover:bg-red-500/80 rounded-sm"
             title="Close"
           >
-            <Icon iconName="close" className="w-4 h-4" />
+            <Icon icon="close" className="w-4 h-4" />
           </button>
         </div>
       </div>

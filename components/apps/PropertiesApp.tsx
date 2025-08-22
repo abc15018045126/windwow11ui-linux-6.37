@@ -1,10 +1,6 @@
 import React, {useEffect} from 'react';
-import {
-  AppDefinition,
-  AppComponentProps,
-  FilesystemItem,
-} from '../../window/types';
-import Icon from '../../window/components/icon';
+import {AppDefinition, AppComponentProps, FilesystemItem} from 'window/types';
+import Icon from 'window/components/icon';
 
 const PropertiesApp: React.FC<AppComponentProps> = ({
   setTitle,
@@ -28,7 +24,7 @@ const PropertiesApp: React.FC<AppComponentProps> = ({
     <div className="p-4 text-sm">
       <div className="flex items-center mb-4">
         <Icon
-          iconName={item.type === 'folder' ? 'folder' : 'fileGeneric'}
+          icon={item.type === 'folder' ? 'folder' : 'fileGeneric'}
           className="w-8 h-8 mr-4"
         />
         <span className="font-bold text-lg">{item.name}</span>
@@ -51,6 +47,7 @@ const PropertiesApp: React.FC<AppComponentProps> = ({
 export const appDefinition: AppDefinition = {
   id: 'properties',
   name: 'Properties',
+  icon: 'properties', // Using a string name for a generic icon
   component: PropertiesApp,
   defaultSize: {width: 400, height: 250},
   // This app shouldn't be pinnable or directly launchable from the start menu

@@ -1,4 +1,4 @@
-import {ProjectFile, FilesystemItem} from '../types';
+import {ProjectFile, FilesystemItem} from 'window/types';
 
 const API_BASE_URL = 'http://localhost:3001/api/fs';
 
@@ -117,14 +117,16 @@ export const fetchPinnedApps = async (): Promise<string[]> => {
   }
 };
 
-export const savePinnedApps = async (pinnedAppIds: string[]): Promise<boolean> => {
+export const savePinnedApps = async (
+  pinnedAppIds: string[],
+): Promise<boolean> => {
   try {
     const response = await fetch(`${APP_DATA_API_BASE_URL}/pinned-apps`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pinnedAppIds }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({pinnedAppIds}),
     });
-    const result = await handleResponse<{ success: boolean }>(response);
+    const result = await handleResponse<{success: boolean}>(response);
     return result?.success || false;
   } catch (e) {
     console.error('Network error in savePinnedApps:', e);

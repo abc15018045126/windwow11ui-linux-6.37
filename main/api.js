@@ -33,7 +33,12 @@ function startApiServer() {
       const appsDir = path.join(FS_ROOT, 'components', 'apps');
       const entries = await fs.promises.readdir(appsDir, {withFileTypes: true});
 
-      const registryPath = path.join(FS_ROOT, 'main', 'data', 'external-apps.json');
+      const registryPath = path.join(
+        FS_ROOT,
+        'main',
+        'data',
+        'external-apps.json',
+      );
       let installedIds = new Set();
       try {
         const data = await fs.promises.readFile(registryPath, 'utf-8');
@@ -41,7 +46,10 @@ function startApiServer() {
         installedIds = new Set(installedApps.map(app => app.id));
       } catch (error) {
         if (error.code !== 'ENOENT') {
-          console.error('Could not read external app registry for checking installed status:', error);
+          console.error(
+            'Could not read external app registry for checking installed status:',
+            error,
+          );
         }
         // If file doesn't exist, installedIds remains an empty set, which is correct.
       }
@@ -116,7 +124,12 @@ function startApiServer() {
         .json({error: 'Missing required app details for installation.'});
     }
 
-    const registryPath = path.join(FS_ROOT, 'main', 'data', 'external-apps.json');
+    const registryPath = path.join(
+      FS_ROOT,
+      'main',
+      'data',
+      'external-apps.json',
+    );
     const componentName = name.replace(/-/g, ''); // Sanitize name for JS variable
 
     try {
@@ -180,7 +193,12 @@ function startApiServer() {
   });
 
   // Pinned Apps Endpoints
-  const PINNED_APPS_PATH = path.join(FS_ROOT, 'main', 'data', 'pinned-apps.json');
+  const PINNED_APPS_PATH = path.join(
+    FS_ROOT,
+    'main',
+    'data',
+    'pinned-apps.json',
+  );
 
   apiApp.get('/api/pinned-apps', async (req, res) => {
     try {
@@ -191,22 +209,27 @@ function startApiServer() {
         res.json([]); // File doesn't exist, return empty array
       } else {
         console.error('API Error getting pinned apps:', error);
-        res.status(500).json({ error: 'Failed to get pinned apps' });
+        res.status(500).json({error: 'Failed to get pinned apps'});
       }
     }
   });
 
   apiApp.post('/api/pinned-apps', async (req, res) => {
-    const { pinnedAppIds } = req.body;
+    const {pinnedAppIds} = req.body;
     if (!Array.isArray(pinnedAppIds)) {
-      return res.status(400).json({ error: 'Invalid payload: pinnedAppIds must be an array.' });
+      return res
+        .status(400)
+        .json({error: 'Invalid payload: pinnedAppIds must be an array.'});
     }
     try {
-      await fs.promises.writeFile(PINNED_APPS_PATH, JSON.stringify(pinnedAppIds, null, 2));
-      res.json({ success: true });
+      await fs.promises.writeFile(
+        PINNED_APPS_PATH,
+        JSON.stringify(pinnedAppIds, null, 2),
+      );
+      res.json({success: true});
     } catch (error) {
       console.error('API Error saving pinned apps:', error);
-      res.status(500).json({ error: 'Failed to save pinned apps' });
+      res.status(500).json({error: 'Failed to save pinned apps'});
     }
   });
 

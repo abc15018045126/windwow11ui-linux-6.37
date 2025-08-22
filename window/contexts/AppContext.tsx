@@ -1,15 +1,21 @@
 import React from 'react';
 
+import {AppIconProps, AppComponentType} from 'window/types';
+
 // This definition represents the structure of the JSON data in our .app files,
-// which is discovered and served by the backend.
+// which is discovered and served by the backend. It also aligns with the
+// main AppDefinition for consistency in the UI.
 export interface DiscoveredAppDefinition {
   id: string; // filename, e.g., "Notebook.app"
   name: string;
   external?: boolean;
   path?: string;
   appId?: string;
-  icon?: string;
+  icon?: string | React.FC<AppIconProps>;
   handlesFiles?: boolean;
+  // Added to align with AppDefinition
+  isPinnedToTaskbar?: boolean;
+  component?: AppComponentType;
 }
 
 export interface AppContextType {
