@@ -92,6 +92,47 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
     }
   }, []);
 
+  // This effect is responsible for attaching event listeners to webviews
+  useEffect(() => {
+    tabs.forEach(tab => {
+      const webview = webviewRefs.current[tab.id];
+      if (webview && !webview.dataset.listenersAttached) {
+        webview.dataset.listenersAttached = 'true';
+
+        const handleDomReady = () => {
+          // The initial URL for a new tab is set here
+          if (tab.url !== 'about:blank') {
+             webview.loadURL(tab.url);
+          }
+        };
+
+        webview.addEventListener('dom-ready', handleDomReady, { once: true });
+
+        webview.addEventListener('page-title-updated', e => {
+          updateTabState(tab.id, { title: e.title });
+        });
+        webview.addEventListener('did-start-loading', () => {
+          updateTabState(tab.id, { isLoading: true });
+        });
+        webview.addEventListener('did-stop-loading', () => {
+          updateTabState(tab.id, {
+            isLoading: false,
+            canGoBack: webview.canGoBack(),
+            canGoForward: webview.canGoForward(),
+          });
+        });
+        webview.addEventListener('did-navigate', e => {
+          updateTabState(tab.id, { url: e.url });
+        });
+        webview.addEventListener('did-fail-load', e => {
+          if (e.errorCode !== -3) { // Ignore user-aborted errors
+            updateTabState(tab.id, { title: `Error: ${e.errorCode}` });
+          }
+        });
+      }
+    });
+  }, [tabs]);
+
 
   const closeTab = (tabIdToClose: string) => {
     // Prevent closing the last tab
@@ -227,36 +268,14 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
               React.createElement('webview', {
                 key: tab.id,
                 ref: (el: WebViewElement) => {
-                  if (el && !webviewRefs.current[tab.id]) {
+                  if (el) {
                     webviewRefs.current[tab.id] = el;
-
-                    // Attach event listeners only once
-                    el.addEventListener('page-title-updated', (e) => {
-                      updateTabState(tab.id, { title: e.title });
-                    });
-                    el.addEventListener('did-start-loading', () => {
-                      updateTabState(tab.id, { isLoading: true });
-                    });
-                    el.addEventListener('did-stop-loading', () => {
-                      updateTabState(tab.id, {
-                        isLoading: false,
-                        canGoBack: el.canGoBack(),
-                        canGoForward: el.canGoForward(),
-                      });
-                    });
-                    el.addEventListener('did-navigate', (e) => {
-                      updateTabState(tab.id, { url: e.url });
-                    });
-                    el.addEventListener('did-fail-load', (e) => {
-                      updateTabState(tab.id, { title: `Error: ${e.errorCode}` });
-                    });
-                    // For the very first load of a new tab
-                    if (tab.url !== 'about:blank') {
-                      el.loadURL(tab.url);
-                    }
+                  } else {
+                    // Clean up the ref when the webview is unmounted
+                    delete webviewRefs.current[tab.id];
                   }
                 },
-                src: 'about:blank', // Start with a blank page, let events handle loading
+                src: 'about:blank', // Start with a blank page, useEffect handles loading
                 className: 'w-full h-full border-none bg-white',
                 partition: partition,
                 allowpopups: "true",
