@@ -150,10 +150,6 @@ const App: React.FC = () => {
                 <StartMenu
                   onOpenApp={openApp}
                   onClose={() => setIsStartMenuOpen(false)}
-                  onCopy={handleCopy}
-                  onCut={handleCut}
-                  onPaste={handlePaste}
-                  clipboard={clipboard}
                 />
               )}
 
