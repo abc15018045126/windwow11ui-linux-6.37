@@ -26,7 +26,7 @@ const Chrome7App: React.FC<AppComponentProps> = ({setTitle}) => {
     }
 
     try {
-      const response = await fetch(`/api/proxy?url=${encodeURIComponent(targetUrl)}`);
+      const response = await fetch(`http://localhost:3001/api/proxy?url=${encodeURIComponent(targetUrl)}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
