@@ -46,6 +46,10 @@ function startApiServer() {
       const response = await fetch(url);
       const text = await response.text();
 
+      // Set CSP to prevent frame-busting.
+      // 'self' allows the content to be framed by our own origin.
+      res.setHeader('Content-Security-Policy', "frame-ancestors 'self';");
+
       // For now, just send the raw HTML.
       // In the future, we would parse and rewrite links here.
       res.send(text);
