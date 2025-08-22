@@ -69,6 +69,9 @@ const Chrome7App: React.FC<AppComponentProps> = ({setTitle}) => {
           <iframe
             srcDoc={proxiedHtml}
             className="w-full h-full border-none"
+            // NOTE: 'allow-same-origin' is a security risk but is necessary for many
+            // sites to function correctly within the iframe (e.g., for logins, etc.).
+            // This is an experimental feature and this sandbox configuration reflects that.
             sandbox="allow-scripts allow-same-origin"
             title="Proxied Content"
           />
