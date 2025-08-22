@@ -44,26 +44,40 @@ const iconMap: {[key: string]: React.FC<AppIconProps>} = {
 };
 
 interface IconProps extends AppIconProps {
-  iconName?: string;
+  icon?: string | React.FC<AppIconProps>;
 }
 
-export const isValidIcon = (iconName: string): boolean => {
-  return iconName in iconMap;
+export const isValidIcon = (
+  icon?: string | React.FC<AppIconProps>,
+): boolean => {
+  if (typeof icon === 'string') {
+    return icon in iconMap;
+  }
+  // If it's not a string, we assume it's a valid component.
+  return typeof icon === 'function';
 };
 
-export const Icon: React.FC<IconProps> = ({iconName, ...rest}) => {
-  if (!iconName) {
+export const Icon: React.FC<IconProps> = ({icon, ...rest}) => {
+  if (!icon) {
     return <Icons.FileGenericIcon {...rest} />;
   }
 
-  const IconComponent = iconMap[iconName];
-
-  if (!IconComponent) {
-    console.warn(`Icon "${iconName}" not found. Falling back to default.`);
-    return <Icons.FileGenericIcon {...rest} />;
+  // If the icon is a component, render it directly.
+  if (typeof icon === 'function') {
+    const IconComponent = icon;
+    return <IconComponent {...rest} />;
   }
 
-  return <IconComponent {...rest} />;
+  // If the icon is a string, look it up in the map.
+  if (typeof icon === 'string') {
+    const IconComponent = iconMap[icon];
+    if (IconComponent) {
+      return <IconComponent {...rest} />;
+    }
+  }
+
+  console.warn(`Icon "${icon}" not found. Falling back to default.`);
+  return <Icons.FileGenericIcon {...rest} />;
 };
 
 export default Icon;
