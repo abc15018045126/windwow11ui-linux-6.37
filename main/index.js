@@ -35,8 +35,10 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 
-  // Always open DevTools as requested
-  mainWindow.webContents.openDevTools();
+  // Wait for the window to finish loading before opening DevTools
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.openDevTools();
+  });
 }
 
 app.whenReady().then(() => {
