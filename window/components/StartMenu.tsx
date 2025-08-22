@@ -4,7 +4,7 @@ import Icon, {isValidIcon} from './icon';
 import {useTheme} from '../theme';
 import ContextMenu, {ContextMenuItem} from './ContextMenu';
 import * as FsService from '../../services/filesystemService';
-import {AppDefinition, FilesystemItem} from '../types';
+import {AppDefinition, ClipboardItem, FilesystemItem} from '../types';
 import {buildContextMenu} from './file/right-click';
 
 interface StartMenuProps {
@@ -13,6 +13,7 @@ interface StartMenuProps {
   onCopy: (item: FilesystemItem) => void;
   onCut: (item: FilesystemItem) => void;
   onPaste: (path: string) => void;
+  clipboard: ClipboardItem | null;
 }
 
 const StartMenu: React.FC<StartMenuProps> = ({
@@ -21,6 +22,7 @@ const StartMenu: React.FC<StartMenuProps> = ({
   onCopy,
   onCut,
   onPaste,
+  clipboard,
 }) => {
   const {apps, refreshApps} = useContext(AppContext);
   const [isShowingAllApps, setIsShowingAllApps] = useState(false);
@@ -106,12 +108,22 @@ const StartMenu: React.FC<StartMenuProps> = ({
               : appIdOrDef;
           if (appDef) onOpenApp(appDef);
         },
-        onRename: () => alert('Rename not supported from Start Menu.'),
+        onRename: async (item, newName) => {
+          const oldPath = item.path;
+          const newPath = `${allAppsPath}/${newName}`;
+          try {
+            await FsService.renameItem(oldPath, newPath);
+            if (refreshApps) refreshApps();
+          } catch (renameError) {
+            console.error('Failed to rename app shortcut:', renameError);
+            alert('Failed to rename shortcut.');
+          }
+        },
         onCopy: onCopy,
         onCut: onCut,
         onPaste: onPaste,
         onOpen: () => onOpenApp(app),
-        isPasteDisabled: true,
+        isPasteDisabled: !clipboard,
       });
 
       setContextMenu({x: e.clientX, y: e.clientY, items: menuItems});
