@@ -2,7 +2,7 @@ const {app} = require('electron');
 const path = require('path');
 
 const isDev = !app.isPackaged;
-const API_PORT = 3001;
+const API_PORT = process.env.API_PORT || 6001;
 const WS_PORT = 3002;
 const SFTP_WS_PORT = 3003;
 
