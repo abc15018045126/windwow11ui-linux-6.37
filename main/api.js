@@ -37,30 +37,37 @@ function startApiServer() {
     }
 
     try {
+      console.log(`[API Proxy] Received request for URL: ${url}`);
       // Basic validation to ensure it's a valid URL
       const parsedUrl = new URL(url);
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        console.error(`[API Proxy] Invalid protocol: ${parsedUrl.protocol}`);
         return res.status(400).send('Invalid URL protocol.');
       }
 
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-        }
-      });
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+      };
+      console.log('[API Proxy] Fetching with headers:', headers);
+
+      const response = await fetch(url, { headers });
+      console.log(`[API Proxy] Got response with status: ${response.status} ${response.statusText}`);
+
       const text = await response.text();
 
-      // Set CSP to prevent frame-busting.
-      // 'self' allows the content to be framed by our own origin.
       res.setHeader('Content-Security-Policy', "frame-ancestors 'self';");
 
-      // For now, just send the raw HTML.
-      // In the future, we would parse and rewrite links here.
+      console.log(`[API Proxy] Successfully fetched and sending ${text.length} bytes of content.`);
       res.send(text);
 
     } catch (error) {
-      console.error(`[API Proxy] Failed to fetch URL: ${url}`, error);
-      res.status(500).send(`Failed to fetch URL: ${url}. Error: ${error.message}`);
+      console.error(`[API PROXY] FATAL ERROR for URL: ${url}`);
+      console.error(error); // Log the full error object
+      res.status(500).send(`Failed to fetch URL: ${url}. See server console for details.`);
     }
   });
 
