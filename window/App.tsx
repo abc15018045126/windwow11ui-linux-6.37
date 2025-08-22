@@ -153,6 +153,7 @@ const App: React.FC = () => {
                   onCopy={handleCopy}
                   onCut={handleCut}
                   onPaste={handlePaste}
+                  clipboard={clipboard}
                 />
               )}
 
