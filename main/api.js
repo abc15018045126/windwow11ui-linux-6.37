@@ -43,11 +43,6 @@ function startApiServer() {
         return res.status(400).send('Invalid URL protocol.');
       }
 
-      // Security check to prevent proxying local resources
-      if (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1') {
-        return res.status(403).send('Proxying local resources is not allowed.');
-      }
-
       const response = await fetch(url);
       const text = await response.text();
 
