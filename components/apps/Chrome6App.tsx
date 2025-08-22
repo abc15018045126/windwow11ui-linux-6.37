@@ -3,6 +3,12 @@ import {AppDefinition, AppComponentProps} from '../../window/types';
 import {Browser6Icon} from '../../window/constants';
 
 // --- SVG Icons for Browser Controls (Copied from Chrome3App) ---
+const CloseIcon: React.FC<{className?: string}> = ({className = 'w-4 h-4'}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 const BackIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -46,89 +52,129 @@ interface WebViewElement extends HTMLElement {
 
 const isUrl = (str: string) => /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(str);
 
+// Define the structure for a tab's state
+interface Tab {
+  id: string;
+  url: string;
+  title: string;
+  isLoading: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
 const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) => {
-  const [inputValue, setInputValue] = useState('https://www.google.com/search?q=what+is+my+user+agent');
-  const [isLoading, setIsLoading] = useState(true);
-  const [canGoBack, setCanGoBack] = useState(false);
-  const [canGoForward, setCanGoForward] = useState(false);
-  const webviewRef = useRef<WebViewElement | null>(null);
-  const hasLoadedInitialUrl = useRef(false);
-  const partition = 'persist:chrome6'; // Use a unique partition for Chrome 6
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
 
+  // A ref to hold the webview elements for easy access
+  const webviewRefs = useRef<{[key: string]: WebViewElement}>({});
+  const partition = 'persist:chrome6';
+
+  // Function to create a new tab
+  const createNewTab = (url = 'https://www.google.com/search?q=what+is+my+user+agent') => {
+    const newTabId = `tab-${Date.now()}`;
+    const newTab: Tab = {
+      id: newTabId,
+      url: url,
+      title: 'New Tab',
+      isLoading: true,
+      canGoBack: false,
+      canGoForward: false,
+    };
+    setTabs(prevTabs => [...prevTabs, newTab]);
+    setActiveTabId(newTabId);
+  };
+
+  // Initialize with a single tab when the component mounts
   useEffect(() => {
-    const webview = webviewRef.current;
-    if (!webview) return;
-
-    const initialUrl = 'https://www.google.com/search?q=what+is+my+user+agent';
-
-    const handleDomReady = () => {
-      if (!hasLoadedInitialUrl.current) {
-        hasLoadedInitialUrl.current = true;
-        webview.loadURL(initialUrl);
-      }
-    };
-
-    const handleLoadStart = () => setIsLoading(true);
-    const handleLoadStop = () => {
-      setIsLoading(false);
-      const currentUrl = webview.getURL();
-      if (currentUrl && !currentUrl.startsWith('about:blank')) {
-        setWindowTitle(`${webview.getTitle()} - Chrome 6`);
-        setInputValue(currentUrl);
-      }
-      setCanGoBack(webview.canGoBack());
-      setCanGoForward(webview.canGoForward());
-    };
-
-    webview.addEventListener('dom-ready', handleDomReady);
-    webview.addEventListener('did-start-loading', handleLoadStart);
-    webview.addEventListener('did-stop-loading', handleLoadStop);
-
-    // The main cleanup function
-    return () => {
-      // handleDomReady is already removed, but it's good practice to be thorough
-      // in case the component unmounts before dom-ready fires.
-      webview.removeEventListener('dom-ready', handleDomReady);
-      webview.removeEventListener('did-start-loading', handleLoadStart);
-      webview.removeEventListener('did-stop-loading', handleLoadStop);
-    };
-  }, [setWindowTitle]);
-
-  const navigate = (input: string) => {
-    const webview = webviewRef.current;
-    if (!webview) return;
-    let newUrl = input.trim();
-    if (isUrl(newUrl)) {
-      newUrl = !/^https?:\/\//i.test(newUrl) ? `https://${newUrl}` : newUrl;
-    } else {
-      newUrl = `https://duckduckgo.com/?q=${encodeURIComponent(newUrl)}`;
+    if (tabs.length === 0) {
+      createNewTab();
     }
-    webview.loadURL(newUrl);
+  }, []);
+
+
+  const closeTab = (tabIdToClose: string) => {
+    // Prevent closing the last tab
+    if (tabs.length === 1) {
+      // Optionally, you could reset the state of the last tab instead
+      // For now, we just prevent closing. A better UX might be to open a new tab.
+      return;
+    }
+
+    const tabToCloseIndex = tabs.findIndex(tab => tab.id === tabIdToClose);
+    const newTabs = tabs.filter(tab => tab.id !== tabIdToClose);
+
+    // If the closed tab was the active one, decide which tab to activate next
+    if (activeTabId === tabIdToClose) {
+      // Activate the tab to the left, or the new last tab if the first was closed
+      const newActiveIndex = Math.max(0, tabToCloseIndex - 1);
+      setActiveTabId(newTabs[newActiveIndex].id);
+    }
+
+    setTabs(newTabs);
+    delete webviewRefs.current[tabIdToClose];
+  };
+
+  const activeTab = tabs.find(tab => tab.id === activeTabId);
+
+  const handleNavigation = (action: 'back' | 'forward' | 'reload' | 'home' | {url: string}) => {
+    if (!activeTabId || !webviewRefs.current[activeTabId]) return;
+    const webview = webviewRefs.current[activeTabId];
+
+    if (action === 'back') webview.goBack();
+    else if (action === 'forward') webview.goForward();
+    else if (action === 'reload') webview.reload();
+    else if (action === 'home') webview.loadURL('https://www.google.com');
+    else if (typeof action === 'object' && action.url) {
+      let newUrl = action.url.trim();
+      if (isUrl(newUrl)) {
+        newUrl = !/^https?:\/\//i.test(newUrl) ? `https://${newUrl}` : newUrl;
+      } else {
+        newUrl = `https://duckduckgo.com/?q=${encodeURIComponent(newUrl)}`;
+      }
+      webview.loadURL(newUrl);
+    }
+  };
+
+  const handleAddressBarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUrl = e.target.value;
+    setTabs(tabs.map(tab => tab.id === activeTabId ? {...tab, url: newUrl} : tab));
+  };
+
+  const updateTabState = (tabId: string, newValues: Partial<Tab>) => {
+    setTabs(prevTabs =>
+      prevTabs.map(tab =>
+        tab.id === tabId ? { ...tab, ...newValues } : tab
+      )
+    );
   };
 
   const handleAddressBarSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') navigate(inputValue);
+    if (e.key === 'Enter' && activeTab) {
+      handleNavigation({url: activeTab.url});
+    }
   };
 
   return (
     <div className="flex flex-col h-full bg-zinc-800 text-white select-none">
+      {/* Top bar with navigation controls and address bar */}
       <div className="flex-shrink-0 flex items-center p-1.5 bg-zinc-800 border-b border-zinc-700 space-x-1">
-        <button onClick={() => webviewRef.current?.goBack()} disabled={!canGoBack} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed" title="Back">
+        <button onClick={() => handleNavigation('back')} disabled={!activeTab?.canGoBack} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed" title="Back">
           <BackIcon />
         </button>
-        <button onClick={() => webviewRef.current?.goForward()} disabled={!canGoForward} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed" title="Forward">
+        <button onClick={() => handleNavigation('forward')} disabled={!activeTab?.canGoForward} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed" title="Forward">
           <ForwardIcon />
         </button>
-        <button onClick={() => webviewRef.current?.reload()} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30" title="Reload">
-          {isLoading ? <Spinner /> : <RefreshIcon />}
+        <button onClick={() => handleNavigation('reload')} disabled={!activeTab} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30" title="Reload">
+          {activeTab?.isLoading ? <Spinner /> : <RefreshIcon />}
         </button>
-        <button onClick={() => webviewRef.current?.loadURL('https://www.google.com')} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30" title="Home">
+        <button onClick={() => handleNavigation('home')} disabled={!activeTab} className="p-1.5 rounded-full hover:bg-zinc-700 disabled:opacity-30" title="Home">
           <HomeIcon />
         </button>
         <input
           type="text"
-          value={inputValue}
-          onChange={e => setInputValue(e.target.value)}
+          value={activeTab?.url || ''}
+          onChange={handleAddressBarChange}
           onKeyDown={handleAddressBarSubmit}
           onFocus={e => e.target.select()}
           className="flex-grow bg-zinc-900 border border-zinc-700 rounded-full py-1.5 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-zinc-400"
@@ -136,20 +182,92 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
         />
       </div>
 
-      <div className="flex-grow relative bg-black">
-        {window.electronAPI ? (
-          React.createElement('webview', {
-            ref: webviewRef,
-            src: 'about:blank',
-            className: 'w-full h-full border-none bg-white',
-            partition: partition,
-            allowpopups: "true",
-          })
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-zinc-400">
-            This feature is only available in the Electron version of the app.
+      {/* Tab Bar */}
+      <div className="flex-shrink-0 flex items-center bg-zinc-900 border-b border-zinc-700">
+        {tabs.map(tab => (
+          <div
+            key={tab.id}
+            onClick={() => setActiveTabId(tab.id)}
+            className={`flex items-center py-2 px-4 border-r border-zinc-700 cursor-pointer transition-colors ${
+              activeTabId === tab.id ? 'bg-zinc-800' : 'hover:bg-zinc-700/50'
+            }`}
+          >
+            <span className="text-xs truncate mr-2">{tab.title}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the tab itself from being clicked
+                closeTab(tab.id);
+              }}
+              className="p-0.5 rounded-full hover:bg-zinc-600"
+            >
+              <CloseIcon className="w-3 h-3" />
+            </button>
           </div>
-        )}
+        ))}
+        <button
+          onClick={() => createNewTab('about:blank')}
+          className="p-2 hover:bg-zinc-700/50"
+          title="New Tab"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Webview Container */}
+      <div className="flex-grow relative bg-black">
+        {tabs.map(tab => (
+          <div
+            key={`webview-container-${tab.id}`}
+            className="w-full h-full"
+            style={{ display: tab.id === activeTabId ? 'block' : 'none' }}
+          >
+            {window.electronAPI ? (
+              React.createElement('webview', {
+                key: tab.id,
+                ref: (el: WebViewElement) => {
+                  if (el && !webviewRefs.current[tab.id]) {
+                    webviewRefs.current[tab.id] = el;
+
+                    // Attach event listeners only once
+                    el.addEventListener('page-title-updated', (e) => {
+                      updateTabState(tab.id, { title: e.title });
+                    });
+                    el.addEventListener('did-start-loading', () => {
+                      updateTabState(tab.id, { isLoading: true });
+                    });
+                    el.addEventListener('did-stop-loading', () => {
+                      updateTabState(tab.id, {
+                        isLoading: false,
+                        canGoBack: el.canGoBack(),
+                        canGoForward: el.canGoForward(),
+                      });
+                    });
+                    el.addEventListener('did-navigate', (e) => {
+                      updateTabState(tab.id, { url: e.url });
+                    });
+                    el.addEventListener('did-fail-load', (e) => {
+                      updateTabState(tab.id, { title: `Error: ${e.errorCode}` });
+                    });
+                    // For the very first load of a new tab
+                    if (tab.url !== 'about:blank') {
+                      el.loadURL(tab.url);
+                    }
+                  }
+                },
+                src: 'about:blank', // Start with a blank page, let events handle loading
+                className: 'w-full h-full border-none bg-white',
+                partition: partition,
+                allowpopups: "true",
+              })
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-zinc-400">
+                This feature is only available in the Electron version of the app.
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
