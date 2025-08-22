@@ -7,6 +7,7 @@ const {FS_ROOT} = require('./constants');
 const fsRouter = require('./filesystem');
 const {launchExternalAppByPath} = require('./launcher');
 const {API_PORT} = require('./constants');
+const fetch = require('node-fetch');
 
 function startApiServer() {
   const apiApp = express();
@@ -24,6 +25,34 @@ function startApiServer() {
     } catch (error) {
       console.error('API Error getting OS user:', error);
       res.status(500).json({error: 'Failed to get OS username'});
+    }
+  });
+
+  // Web Proxy Endpoint for Chrome 7
+  apiApp.get('/api/proxy', async (req, res) => {
+    const { url } = req.query;
+
+    if (!url) {
+      return res.status(400).send('URL query parameter is required.');
+    }
+
+    try {
+      // Basic validation to ensure it's a valid URL
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).send('Invalid URL protocol.');
+      }
+
+      const response = await fetch(url);
+      const text = await response.text();
+
+      // For now, just send the raw HTML.
+      // In the future, we would parse and rewrite links here.
+      res.send(text);
+
+    } catch (error) {
+      console.error(`[API Proxy] Failed to fetch URL: ${url}`, error);
+      res.status(500).send(`Failed to fetch URL: ${url}. Error: ${error.message}`);
     }
   });
 
