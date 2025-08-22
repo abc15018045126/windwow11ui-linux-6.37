@@ -52,32 +52,19 @@ app.whenReady().then(() => {
   }
 
   // Apply header stripping to enable loading restricted sites in webviews
-  setupHeaderStripping('persist:chrome1');
+
   setupHeaderStripping('persist:chrome3');
   // Re-enabling header stripping for Chrome 4. Its absence may be causing renderer
   // crashes on sites with aggressive anti-embedding policies.
-  setupHeaderStripping('persist:chrome4');
 
   const frameBusterPath = path.join(__dirname, 'frame-buster.js');
 
   // Add preload script to defeat frame-busting JS
   try {
-    const chrome1Session = session.fromPartition('persist:chrome1');
-    chrome1Session.setPreloads([frameBusterPath]);
-    console.log(
-      "[Main] Frame-buster preload script set for partition 'persist:chrome1'",
-    );
-
     const chrome3Session = session.fromPartition('persist:chrome3');
     chrome3Session.setPreloads([frameBusterPath]);
     console.log(
       "[Main] Frame-buster preload script set for partition 'persist:chrome3'",
-    );
-
-    const chrome4Session = session.fromPartition('persist:chrome4');
-    chrome4Session.setPreloads([frameBusterPath]);
-    console.log(
-      "[Main] Frame-buster preload script set for partition 'persist:chrome4'",
     );
   } catch (error) {
     console.error('[Main] Failed to set preload scripts:', error);
