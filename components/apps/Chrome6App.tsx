@@ -52,6 +52,7 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const webviewRef = useRef<WebViewElement | null>(null);
+  const hasLoadedInitialUrl = useRef(false);
   const partition = 'persist:chrome6'; // Use a unique partition for Chrome 6
 
   useEffect(() => {
@@ -61,10 +62,10 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
     const initialUrl = 'https://www.google.com/search?q=what+is+my+user+agent';
 
     const handleDomReady = () => {
-      // This listener should only ever fire once to load the initial URL.
-      webview.loadURL(initialUrl);
-      // It's crucial to remove it so it doesn't hijack subsequent navigations.
-      webview.removeEventListener('dom-ready', handleDomReady);
+      if (!hasLoadedInitialUrl.current) {
+        hasLoadedInitialUrl.current = true;
+        webview.loadURL(initialUrl);
+      }
     };
 
     const handleLoadStart = () => setIsLoading(true);
