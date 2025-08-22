@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {AppDefinition, AppComponentProps} from 'window/types';
-import {Browser4Icon} from 'window/constants';
+import {AppDefinition, AppComponentProps} from '../../window/types';
+import {Browser4Icon} from '../../window/constants';
 
 // --- SVG Icons for Browser Controls ---
 const BackIcon: React.FC = () => (
@@ -121,9 +121,7 @@ const Chrome4App: React.FC<AppComponentProps> = ({
 
   useEffect(() => {
     const webview = webviewRef.current;
-    if (!webview) {
-      return () => {};
-    }
+    if (!webview) return;
 
     const handleLoadStart = () => setIsLoading(true);
     const handleLoadStop = () => {

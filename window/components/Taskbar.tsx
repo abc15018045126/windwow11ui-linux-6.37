@@ -83,14 +83,14 @@ const Taskbar: React.FC<TaskbarProps> = ({
               className={`taskbar-start-button p-2 rounded h-full flex items-center ${theme.taskbar.buttonHover}`}
               aria-label="Start Menu"
             >
-              <Icon icon="start" className="w-5 h-5 text-blue-400" />
+              <Icon iconName="start" className="w-5 h-5 text-blue-400" />
             </button>
 
             {taskbarApps.map(app => {
+              const isPinned = pinnedApps.includes(app.id);
               // The key must be unique. If the app is open, use its instanceId. Otherwise, fall back to id.
-              const buttonKey = (
-                'instanceId' in app ? app.instanceId : app.id
-              ) as string;
+              const buttonKey = 'instanceId' in app ? app.instanceId : app.id;
+              const iconName = isValidIcon(app.icon) ? app.icon : 'fileGeneric';
 
               return (
                 <button
@@ -101,7 +101,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
                             ${app.isActive ? theme.taskbar.activeButton : theme.taskbar.buttonHover}`}
                   title={app.name}
                 >
-                  <Icon icon={app.icon} className="w-5 h-5" isSmall />
+                  <Icon iconName={iconName} className="w-5 h-5" isSmall />
                   {app.isOpen && (
                     <span
                       className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 rounded-t-sm

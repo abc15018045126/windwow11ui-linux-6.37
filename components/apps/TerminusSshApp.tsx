@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {AppComponentProps, AppDefinition} from 'window/types';
-import {HyperIcon as TerminusIcon} from 'window/constants';
+import {AppComponentProps, AppDefinition} from '../../window/types';
+import {HyperIcon as TerminusIcon} from '../../window/constants';
 import {Terminal} from 'xterm';
 import {FitAddon} from 'xterm-addon-fit';
 
@@ -24,20 +24,18 @@ const TerminusSshApp: React.FC<AppComponentProps> = ({setTitle}) => {
 
   // Fetch current OS user to pre-fill the form
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('http://localhost:3001/api/os-user');
-        if (res.ok) {
-          const data = await res.json();
-          setUsername(data.username || '');
-        }
-      } catch (err) {
-        console.error("Couldn't fetch OS username:", err);
-      } finally {
+    fetch('http://localhost:3001/api/os-user')
+      .then(res =>
+        res.ok ? res.json() : Promise.reject('Failed to fetch user'),
+      )
+      .then(data => {
+        setUsername(data.username || '');
         setHost('127.0.0.1');
-      }
-    };
-    fetchUser();
+      })
+      .catch(err => {
+        console.error("Couldn't fetch OS username:", err);
+        setHost('127.0.0.1');
+      });
   }, []);
 
   // Cleanup WebSocket on unmount
@@ -89,7 +87,6 @@ const TerminusSshApp: React.FC<AppComponentProps> = ({setTitle}) => {
         term.current = null;
       };
     }
-    return () => {};
   }, [status]);
 
   useEffect(() => {

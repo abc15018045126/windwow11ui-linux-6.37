@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {AppDefinition, AppComponentProps} from 'window/types';
-import {readFile, saveFile} from 'services/filesystemService';
-import {NotebookIcon} from 'window/constants';
+import {AppDefinition, AppComponentProps} from '../../window/types';
+import {readFile, saveFile} from '../../../services/filesystemService';
+import {NotebookIcon} from '../../constants';
 
 interface FileIdentifier {
   path: string;
@@ -247,6 +247,7 @@ const NotebookApp: React.FC<AppComponentProps> = ({setTitle, initialData}) => {
   // Handle Ctrl+Scroll for zooming
   useEffect(() => {
     const textarea = textareaRef.current;
+    if (!textarea) return;
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault();
@@ -254,12 +255,8 @@ const NotebookApp: React.FC<AppComponentProps> = ({setTitle, initialData}) => {
         else zoomOut();
       }
     };
-
-    if (textarea) {
-      textarea.addEventListener('wheel', handleWheel, {passive: false});
-      return () => textarea.removeEventListener('wheel', handleWheel);
-    }
-    return () => {};
+    textarea.addEventListener('wheel', handleWheel, {passive: false});
+    return () => textarea.removeEventListener('wheel', handleWheel);
   }, [zoomIn, zoomOut]);
 
   return (

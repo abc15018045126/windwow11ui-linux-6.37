@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {AppDefinition, AppComponentProps} from 'window/types';
-import {Browser3Icon} from 'window/constants';
+import {AppDefinition, AppComponentProps} from '../../window/types';
+import {Browser3Icon} from '../../window/constants';
 
 // --- SVG Icons for Browser Controls ---
 const BackIcon: React.FC = () => (
@@ -123,49 +123,47 @@ const Chrome3App: React.FC<AppComponentProps> = ({
   // Setup proxy and event listeners for the webview
   useEffect(() => {
     const webview = webviewRef.current;
+    if (!webview || !window.electronAPI) return;
 
-    if (webview && window.electronAPI) {
-      const setupProxy = async () => {
-        try {
-          // The main process now handles header stripping. This proxy setup remains
-          // for routing traffic if needed by the SOCKS proxy.
-          await window.electronAPI?.setProxyForSession(partition, {
-            proxyRules: 'socks5://127.0.0.1:1081',
-          });
-          console.log(`Chrome 3: Proxy set for partition ${partition}`);
-          webview.loadURL(url); // Load initial URL after proxy is set
-        } catch (e) {
-          console.error('Failed to set proxy:', e);
-          webview.loadURL(url); // Load even if proxy fails
-        }
-      };
+    const setupProxy = async () => {
+      try {
+        // The main process now handles header stripping. This proxy setup remains
+        // for routing traffic if needed by the SOCKS proxy.
+        await window.electronAPI?.setProxyForSession(partition, {
+          proxyRules: 'socks5://127.0.0.1:1081',
+        });
+        console.log(`Chrome 3: Proxy set for partition ${partition}`);
+        webview.loadURL(url); // Load initial URL after proxy is set
+      } catch (e) {
+        console.error('Failed to set proxy:', e);
+        webview.loadURL(url); // Load even if proxy fails
+      }
+    };
 
-      const handleLoadStart = () => setIsLoading(true);
-      const handleLoadStop = () => {
-        setIsLoading(false);
-        if (!webview.getURL().startsWith('about:blank')) {
-          setWindowTitle(`${webview.getTitle()} - Chrome 3`);
-          setInputValue(webview.getURL());
-        }
-        setCanGoBack(webview.canGoBack());
-        setCanGoForward(webview.canGoForward());
-      };
+    const handleLoadStart = () => setIsLoading(true);
+    const handleLoadStop = () => {
+      setIsLoading(false);
+      if (!webview.getURL().startsWith('about:blank')) {
+        setWindowTitle(`${webview.getTitle()} - Chrome 3`);
+        setInputValue(webview.getURL());
+      }
+      setCanGoBack(webview.canGoBack());
+      setCanGoForward(webview.canGoForward());
+    };
 
-      webview.addEventListener('did-start-loading', handleLoadStart);
-      webview.addEventListener('did-stop-loading', handleLoadStop);
+    webview.addEventListener('did-start-loading', handleLoadStart);
+    webview.addEventListener('did-stop-loading', handleLoadStop);
 
-      setupProxy();
+    setupProxy();
 
-      return () => {
-        webview.removeEventListener('did-start-loading', handleLoadStart);
-        webview.removeEventListener('did-stop-loading', handleLoadStop);
-        window.electronAPI
-          ?.clearProxyForSession(partition)
-          .then(() => console.log(`Proxy cleared for partition ${partition}`))
-          .catch(e => console.error('Failed to clear proxy:', e));
-      };
-    }
-    return () => {};
+    return () => {
+      webview.removeEventListener('did-start-loading', handleLoadStart);
+      webview.removeEventListener('did-stop-loading', handleLoadStop);
+      window.electronAPI
+        ?.clearProxyForSession(partition)
+        .then(() => console.log(`Proxy cleared for partition ${partition}`))
+        .catch(e => console.error('Failed to clear proxy:', e));
+    };
   }, [partition, url, setWindowTitle]);
 
   const navigate = (input: string) => {

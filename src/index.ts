@@ -28,6 +28,6 @@ export function doSomeStuff(
   console.log(andThat);
   console.dir(andThose);
   console.log(longString, trailing, why, iWish, vizzini, re);
-  return true;
+  return;
 }
 // TODO: more examples

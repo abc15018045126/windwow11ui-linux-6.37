@@ -114,26 +114,29 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
               </div>
               <div className="flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4">
                 <div className="space-y-1">
-                  {sortedApps.map(app => (
-                    <button
-                      key={`all-${app.id}`}
-                      onClick={() => {
-                        onOpenApp(app);
-                        onClose();
-                      }}
-                      onContextMenu={e => handleContextMenu(e, app)}
-                      className={`w-full flex items-center p-2 rounded-md transition-colors ${theme.startMenu.buttonHover}`}
-                      title={app.name}
-                    >
-                      <Icon
-                        icon={app.icon}
-                        className="w-6 h-6 mr-4 flex-shrink-0"
-                      />
-                      <span className="text-sm text-left truncate">
-                        {app.name}
-                      </span>
-                    </button>
-                  ))}
+                  {sortedApps.map(app => {
+                    const iconName = isValidIcon(app.icon) ? app.icon : 'fileGeneric';
+                    return (
+                      <button
+                        key={`all-${app.id}`}
+                        onClick={() => {
+                          onOpenApp(app);
+                          onClose();
+                        }}
+                        onContextMenu={e => handleContextMenu(e, app)}
+                        className={`w-full flex items-center p-2 rounded-md transition-colors ${theme.startMenu.buttonHover}`}
+                        title={app.name}
+                      >
+                        <Icon
+                          iconName={iconName}
+                          className="w-6 h-6 mr-4 flex-shrink-0"
+                        />
+                        <span className="text-sm text-left truncate">
+                          {app.name}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -150,23 +153,26 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
                   </button>
                 </div>
                 <div className="grid grid-cols-6 gap-4">
-                  {pinnedApps.map(app => (
-                    <button
-                      key={app.id}
-                      onClick={() => {
-                        onOpenApp(app);
-                        onClose();
-                      }}
-                      onContextMenu={e => handleContextMenu(e, app)}
-                      className={`flex flex-col items-center justify-center p-2 rounded-md transition-colors aspect-square ${theme.startMenu.pinnedButton}`}
-                      title={app.name}
-                    >
-                      <Icon icon={app.icon} className="w-8 h-8 mb-1.5" />
-                      <span className="text-xs text-center truncate w-full">
-                        {app.name}
-                      </span>
-                    </button>
-                  ))}
+                  {pinnedApps.map(app => {
+                    const iconName = isValidIcon(app.icon) ? app.icon : 'fileGeneric';
+                    return (
+                      <button
+                        key={app.id}
+                        onClick={() => {
+                          onOpenApp(app);
+                          onClose();
+                        }}
+                        onContextMenu={e => handleContextMenu(e, app)}
+                        className={`flex flex-col items-center justify-center p-2 rounded-md transition-colors aspect-square ${theme.startMenu.pinnedButton}`}
+                        title={app.name}
+                      >
+                        <Icon iconName={iconName} className="w-8 h-8 mb-1.5" />
+                        <span className="text-xs text-center truncate w-full">
+                          {app.name}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div>
@@ -174,26 +180,29 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
                   Recommended
                 </h2>
                 <div className="space-y-2">
-                  {recommendedApps.map(app => (
-                    <button
-                      key={`rec-${app.id}`}
-                      onClick={() => {
-                        onOpenApp(app);
-                        onClose();
-                      }}
-                      onContextMenu={e => handleContextMenu(e, app)}
-                      className={`w-full flex items-center p-2 rounded-md transition-colors ${theme.startMenu.buttonHover}`}
-                      title={app.name}
-                    >
-                      <Icon
-                        icon={app.icon}
-                        className="w-6 h-6 mr-3 flex-shrink-0"
-                      />
-                      <span className="text-sm text-left truncate">
-                        {app.name}
-                      </span>
-                    </button>
-                  ))}
+                  {recommendedApps.map(app => {
+                    const iconName = isValidIcon(app.icon) ? app.icon : 'fileGeneric';
+                    return (
+                      <button
+                        key={`rec-${app.id}`}
+                        onClick={() => {
+                          onOpenApp(app);
+                          onClose();
+                        }}
+                        onContextMenu={e => handleContextMenu(e, app)}
+                        className={`w-full flex items-center p-2 rounded-md transition-colors ${theme.startMenu.buttonHover}`}
+                        title={app.name}
+                      >
+                        <Icon
+                          iconName={iconName}
+                          className="w-6 h-6 mr-3 flex-shrink-0"
+                        />
+                        <span className="text-sm text-left truncate">
+                          {app.name}
+                        </span>
+                      </button>
+                    );
+                  })}
                   {recommendedApps.length === 0 && (
                     <p className="text-xs text-zinc-400">
                       No recommendations yet.
@@ -208,7 +217,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
           <button
             className={`flex items-center p-2 rounded-md ${theme.startMenu.buttonHover}`}
           >
-            <Icon icon="user" className="w-7 h-7 rounded-full mr-2" />
+            <Icon iconName="user" className="w-7 h-7 rounded-full mr-2" />
             <span className="text-sm">User</span>
           </button>
           <div className="relative flex space-x-1">
@@ -221,7 +230,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
               }}
               className={`p-2 rounded-md ${theme.startMenu.buttonHover}`}
             >
-              <Icon icon="settings" className="w-5 h-5" />
+              <Icon iconName="settings" className="w-5 h-5" />
             </button>
             <button
               ref={powerButtonRef}
@@ -232,7 +241,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
               }}
               className={`p-2 rounded-md ${theme.startMenu.buttonHover}`}
             >
-              <Icon icon="start" className="w-5 h-5" />
+              <Icon iconName="start" className="w-5 h-5" />
             </button>
             {isPowerMenuOpen && (
               <div
@@ -243,7 +252,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
                   onClick={handleRestart}
                   className="w-full text-left px-3 py-1.5 text-sm hover:bg-blue-600 flex items-center"
                 >
-                  <Icon icon="start" className="w-4 h-4 mr-2" />
+                  <Icon iconName="start" className="w-4 h-4 mr-2" />
                   Restart
                 </button>
               </div>

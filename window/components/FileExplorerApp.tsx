@@ -6,13 +6,19 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import {AppDefinition, AppComponentProps, FilesystemItem} from 'window/types';
-import * as FsService from 'services/filesystemService';
-import {getAppsForExtension} from 'services/fileAssociationService';
-import ContextMenu, {ContextMenuItem} from 'window/components/ContextMenu';
-import Icon from 'window/components/icon';
-import {AppContext} from 'window/contexts/AppContext';
-import {buildContextMenu} from 'window/components/file/right-click';
+import {
+  AppDefinition,
+  AppComponentProps,
+  FilesystemItem,
+} from '../../window/types';
+import * as FsService from '../../services/filesystemService';
+import {getAppsForExtension} from '../../services/fileAssociationService';
+import ContextMenu, {
+  ContextMenuItem,
+} from '../../window/components/ContextMenu';
+import Icon from '../../window/components/icon';
+import {AppContext} from '../../window/contexts/AppContext';
+import {buildContextMenu} from '../../window/components/file/right-click';
 
 const getFileIconName = (filename: string): string => {
   if (filename.endsWith('.app')) return 'fileGeneric';
@@ -98,7 +104,6 @@ const FileExplorerApp: React.FC<AppComponentProps> = ({
 
       return () => clearTimeout(timer);
     }
-    return () => {}; // Ensure all paths return a function
   }, [itemToSelect, itemsInCurrentPath]); // Rerun if items change
 
   useEffect(() => {
@@ -170,11 +175,12 @@ const FileExplorerApp: React.FC<AppComponentProps> = ({
               navigateTo(shortcutInfo.target);
             } else {
               const extension =
-                '.' +
-                (shortcutInfo.target.split('.').pop() || '').toLowerCase();
+                '.' + (shortcutInfo.target.split('.').pop() || '').toLowerCase();
               const associatedApps = await getAppsForExtension(extension);
               const targetAppId =
-                associatedApps.length > 0 ? associatedApps[0].id : 'notebook';
+                associatedApps.length > 0
+                  ? associatedApps[0].id
+                  : 'notebook';
               openApp?.(targetAppId, {filePath: shortcutInfo.target});
             }
           }
@@ -306,7 +312,9 @@ const FileExplorerApp: React.FC<AppComponentProps> = ({
           {quickAccessItems.map(item => (
             <SidebarItem
               key={item.path}
-              icon={<Icon icon={item.iconName} isSmall className="w-5 h-5" />}
+              icon={
+                <Icon iconName={item.iconName} isSmall className="w-5 h-5" />
+              }
               label={item.label}
               onClick={() => navigateTo(item.path)}
               isActive={currentPath === item.path}
@@ -396,7 +404,7 @@ const FileExplorerApp: React.FC<AppComponentProps> = ({
                   }`}
                 >
                   <Icon
-                    icon={
+                    iconName={
                       item.type === 'folder'
                         ? 'folder'
                         : getFileIconName(item.name)
