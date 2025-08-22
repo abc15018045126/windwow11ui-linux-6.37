@@ -63,8 +63,8 @@ export type AppComponentType = React.FC<AppComponentProps>;
 export interface AppDefinition {
   id: string;
   name: string;
-  icon?: string | React.FC<AppIconProps>;
-  component?: AppComponentType;
+  icon: string;
+  component: AppComponentType;
   defaultSize?: {width: number; height: number};
   isPinnedToTaskbar?: boolean; // To show on taskbar by default
   allowMultipleInstances?: boolean; // To allow multiple windows of the same app
@@ -102,7 +102,6 @@ export interface Theme {
     buttonHover: string;
     activeButton: string;
     activeIndicator: string;
-    openIndicator: string;
     textColor: string;
   };
   startMenu: {

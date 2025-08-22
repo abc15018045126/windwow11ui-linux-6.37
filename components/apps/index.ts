@@ -14,6 +14,7 @@ function hasAppDefinition(
 }
 
 export const getAppDefinitions = async (): Promise<AppDefinition[]> => {
+
   // Use import.meta.glob to dynamically find all App.tsx files for internal apps
   const internalAppModules = import.meta.glob([
     './*App.tsx',

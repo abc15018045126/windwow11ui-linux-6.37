@@ -1,13 +1,11 @@
-import {AppDefinition} from '../../../types';
-import {createFile} from '../../../../services/filesystemService';
+import { AppDefinition } from '../../../types';
+import { createFile } from '../../../../services/filesystemService';
 
-import {ContextMenuItem} from '../../ContextMenu';
+import { ContextMenuItem } from '../../ContextMenu';
 
 type OnOpenAppFunction = (app: AppDefinition) => void;
 
-export const handleCreateShortcut = async (
-  app: AppDefinition,
-): Promise<void> => {
+export const handleCreateShortcut = async (app: AppDefinition): Promise<void> => {
   const shortcutContent = {
     name: app.name,
     appId: app.id,
@@ -18,7 +16,7 @@ export const handleCreateShortcut = async (
     await createFile(
       '/Desktop',
       fileName,
-      JSON.stringify(shortcutContent, null, 2),
+      JSON.stringify(shortcutContent, null, 2)
     );
     // Optional: show a success notification
   } catch (error) {
@@ -35,7 +33,7 @@ interface MenuBuilderContext {
 export const buildStartMenuContextMenu = (
   context: MenuBuilderContext,
 ): ContextMenuItem[] => {
-  const {app, onOpenApp} = context;
+  const { app, onOpenApp } = context;
 
   return [
     {

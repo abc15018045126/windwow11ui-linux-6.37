@@ -12,8 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "rootDir": ".",
-    "types": ["vite/client"]
+    "outDir": "dist"
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js"],
   "exclude": ["node_modules", "build", "dist"]

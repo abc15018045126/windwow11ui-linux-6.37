@@ -6,14 +6,14 @@ import React, {
   useMemo,
   useContext,
 } from 'react';
-import {FilesystemItem, AppComponentProps, ClipboardItem} from 'window/types';
-import * as FsService from 'services/filesystemService';
-import {getAppsForExtension} from 'services/fileAssociationService';
-import ContextMenu, {ContextMenuItem} from 'window/components/ContextMenu';
-import {TASKBAR_HEIGHT} from 'window/constants';
-import {AppContext} from 'window/contexts/AppContext';
-import Icon, {isValidIcon} from 'window/components/icon';
-import {buildContextMenu} from 'window/components/file/right-click';
+import {FilesystemItem, AppComponentProps, ClipboardItem} from '../types';
+import * as FsService from '../../services/filesystemService';
+import {getAppsForExtension} from '../../services/fileAssociationService';
+import ContextMenu, {ContextMenuItem} from './ContextMenu';
+import {TASKBAR_HEIGHT} from '../constants';
+import {AppContext} from '../contexts/AppContext';
+import Icon, {isValidIcon} from './icon';
+import {buildContextMenu} from './file/right-click';
 
 const GRID_SIZE = 90;
 
@@ -58,7 +58,7 @@ const DesktopItemIcon: React.FC<{item: FilesystemItem}> = ({item}) => {
       iconName = 'notebook';
   }
   return (
-    <Icon icon={iconName} className="w-10 h-10 mb-1 pointer-events-none" />
+    <Icon iconName={iconName} className="w-10 h-10 mb-1 pointer-events-none" />
   );
 };
 
