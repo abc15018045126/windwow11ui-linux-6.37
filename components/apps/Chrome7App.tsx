@@ -26,7 +26,7 @@ const Chrome7App: React.FC<AppComponentProps> = ({setTitle}) => {
     }
 
     try {
-      const port = import.meta.env.VITE_API_PORT || '3001';
+      const port = import.meta.env.VITE_API_PORT || '6001';
       const response = await fetch(`http://localhost:${port}/api/proxy?url=${encodeURIComponent(targetUrl)}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
