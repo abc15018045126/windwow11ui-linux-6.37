@@ -54,6 +54,7 @@ app.whenReady().then(() => {
   // Apply header stripping to enable loading restricted sites in webviews
 
   setupHeaderStripping('persist:chrome3');
+  setupHeaderStripping('persist:chrome6');
   // Re-enabling header stripping for Chrome 4. Its absence may be causing renderer
   // crashes on sites with aggressive anti-embedding policies.
 

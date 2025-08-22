@@ -269,6 +269,21 @@ export const Browser4Icon: React.FC<AppIconProps> = ({
   </div>
 );
 
+export const Browser6Icon: React.FC<AppIconProps> = ({
+  className = 'w-6 h-6',
+  isSmall,
+}) => (
+  <div className={`relative ${isSmall ? 'w-5 h-5' : className}`}>
+    <BrowserIcon className="w-full h-full" isSmall={isSmall} />
+    <span
+      className={`absolute bg-purple-500 text-white font-bold rounded-full flex items-center justify-center border-2 border-black/80
+            ${isSmall ? 'text-[8px] w-3.5 h-3.5 -bottom-0.5 -right-0.5' : 'text-[10px] w-4 h-4 -bottom-1 -right-1'}`}
+    >
+      6
+    </span>
+  </div>
+);
+
 export const SftpIcon: React.FC<AppIconProps> = ({
   className = 'w-6 h-6',
   isSmall,
