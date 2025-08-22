@@ -65,6 +65,7 @@ interface Tab {
 const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const nextTabId = useRef(0);
 
   // A ref to hold the webview elements for easy access
   const webviewRefs = useRef<{[key: string]: WebViewElement}>({});
@@ -72,7 +73,7 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
 
   // Function to create a new tab
   const createNewTab = (url = 'https://www.google.com/search?q=what+is+my+user+agent') => {
-    const newTabId = `tab-${Date.now()}`;
+    const newTabId = `tab-${nextTabId.current++}`;
     const newTab: Tab = {
       id: newTabId,
       url: url,
