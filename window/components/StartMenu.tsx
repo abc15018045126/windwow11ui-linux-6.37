@@ -55,7 +55,14 @@ const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
     e.stopPropagation();
 
     const menuItems: ContextMenuItem[] = [
-      {type: 'item', label: 'Open', onClick: () => onOpenApp(app)},
+      {
+        type: 'item',
+        label: 'Open',
+        onClick: () => {
+          onOpenApp(app);
+          onClose();
+        },
+      },
       {type: 'separator'},
       {type: 'item', label: 'Copy', onClick: () => {}},
       {type: 'item', label: 'Cut', onClick: () => {}},
