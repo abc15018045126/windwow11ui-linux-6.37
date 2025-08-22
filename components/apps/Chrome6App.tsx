@@ -47,8 +47,7 @@ interface WebViewElement extends HTMLElement {
 const isUrl = (str: string) => /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(str);
 
 const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) => {
-  const [url, setUrl] = useState('https://www.google.com/search?q=what+is+my+user+agent');
-  const [inputValue, setInputValue] = useState(url);
+  const [inputValue, setInputValue] = useState('https://www.google.com/search?q=what+is+my+user+agent');
   const [isLoading, setIsLoading] = useState(true);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
@@ -59,17 +58,22 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
     const webview = webviewRef.current;
     if (!webview) return;
 
+    const initialUrl = 'https://www.google.com/search?q=what+is+my+user+agent';
+
     const handleDomReady = () => {
-      // Now it's safe to call loadURL, as the webview is attached and ready.
-      webview.loadURL(url);
+      // This listener should only ever fire once to load the initial URL.
+      webview.loadURL(initialUrl);
+      // It's crucial to remove it so it doesn't hijack subsequent navigations.
+      webview.removeEventListener('dom-ready', handleDomReady);
     };
 
     const handleLoadStart = () => setIsLoading(true);
     const handleLoadStop = () => {
       setIsLoading(false);
-      if (webview.getURL() && !webview.getURL().startsWith('about:blank')) {
+      const currentUrl = webview.getURL();
+      if (currentUrl && !currentUrl.startsWith('about:blank')) {
         setWindowTitle(`${webview.getTitle()} - Chrome 6`);
-        setInputValue(webview.getURL());
+        setInputValue(currentUrl);
       }
       setCanGoBack(webview.canGoBack());
       setCanGoForward(webview.canGoForward());
@@ -79,12 +83,15 @@ const Chrome6App: React.FC<AppComponentProps> = ({ setTitle: setWindowTitle }) =
     webview.addEventListener('did-start-loading', handleLoadStart);
     webview.addEventListener('did-stop-loading', handleLoadStop);
 
+    // The main cleanup function
     return () => {
+      // handleDomReady is already removed, but it's good practice to be thorough
+      // in case the component unmounts before dom-ready fires.
       webview.removeEventListener('dom-ready', handleDomReady);
       webview.removeEventListener('did-start-loading', handleLoadStart);
       webview.removeEventListener('did-stop-loading', handleLoadStop);
     };
-  }, [url, setWindowTitle]);
+  }, [setWindowTitle]);
 
   const navigate = (input: string) => {
     const webview = webviewRef.current;
