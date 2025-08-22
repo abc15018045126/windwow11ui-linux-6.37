@@ -8,7 +8,7 @@ const fsRouter = require('./filesystem');
 const {launchExternalAppByPath} = require('./launcher');
 const {API_PORT} = require('./constants');
 const fetch = require('node-fetch');
-
+const { HttpsProxyAgent } = require('https-proxy-agent');
 function startApiServer() {
   const apiApp = express();
   apiApp.use(cors());
@@ -54,7 +54,17 @@ function startApiServer() {
       };
       console.log('[API Proxy] Fetching with headers:', headers);
 
-      const response = await fetch(url, { headers });
+      // Use system proxy if available
+      const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+      let agent = null;
+      if (proxyUrl) {
+        console.log(`[API Proxy] Using system proxy: ${proxyUrl}`);
+        agent = new HttpsProxyAgent(proxyUrl);
+      } else {
+        console.log('[API Proxy] No system proxy found. Attempting direct connection.');
+      }
+
+      const response = await fetch(url, { headers, agent });
       console.log(`[API Proxy] Got response with status: ${response.status} ${response.statusText}`);
 
       const text = await response.text();
