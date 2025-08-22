@@ -3,27 +3,14 @@ import {AppContext} from '../contexts/AppContext';
 import Icon, {isValidIcon} from './icon';
 import {useTheme} from '../theme';
 import ContextMenu, {ContextMenuItem} from './ContextMenu';
-import * as FsService from '../../services/filesystemService';
-import {AppDefinition, ClipboardItem, FilesystemItem} from '../types';
-import {buildContextMenu} from './file/right-click';
+import {AppDefinition} from '../types';
 
 interface StartMenuProps {
   onOpenApp: (app: AppDefinition) => void;
   onClose: () => void;
-  onCopy: (item: FilesystemItem) => void;
-  onCut: (item: FilesystemItem) => void;
-  onPaste: (path: string) => void;
-  clipboard: ClipboardItem | null;
 }
 
-const StartMenu: React.FC<StartMenuProps> = ({
-  onOpenApp,
-  onClose,
-  onCopy,
-  onCut,
-  onPaste,
-  clipboard,
-}) => {
+const StartMenu: React.FC<StartMenuProps> = ({onOpenApp, onClose}) => {
   const {apps, refreshApps} = useContext(AppContext);
   const [isShowingAllApps, setIsShowingAllApps] = useState(false);
   const {theme} = useTheme();
@@ -63,73 +50,29 @@ const StartMenu: React.FC<StartMenuProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isPowerMenuOpen]);
 
-  const handleContextMenu = async (
-    e: React.MouseEvent,
-    app: AppDefinition,
-  ) => {
+  const handleContextMenu = (e: React.MouseEvent, app: AppDefinition) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const allAppsPath = '/All Apps';
-    const appFileName = `${app.name}.app`;
-    const appFilePath = `${allAppsPath}/${appFileName}`;
+    const menuItems: ContextMenuItem[] = [
+      {type: 'item', label: 'Open', onClick: () => onOpenApp(app)},
+      {type: 'separator'},
+      {type: 'item', label: 'Copy', onClick: () => {}},
+      {type: 'item', label: 'Cut', onClick: () => {}},
+      {type: 'item', label: 'Paste', onClick: () => {}, disabled: true},
+      {type: 'separator'},
+      {type: 'item', label: 'Rename', onClick: () => {}},
+      {type: 'item', label: 'Pin to Taskbar', onClick: () => {}},
+      {type: 'separator'},
+      {
+        type: 'item',
+        label: 'Properties',
+        onClick: () => {},
+        disabled: true,
+      },
+    ];
 
-    try {
-      const rootItems = await FsService.listDirectory('/');
-      const allAppsFolderExists = rootItems.some(
-        item => item.name === 'All Apps' && item.type === 'folder',
-      );
-      if (!allAppsFolderExists) {
-        await FsService.createFolder('/', 'All Apps');
-      }
-
-      const allAppsItems = await FsService.listDirectory(allAppsPath);
-      let appFileItem = allAppsItems.find(item => item.name === appFileName);
-
-      if (!appFileItem) {
-        const appFileContent = JSON.stringify({appId: app.id, icon: app.icon});
-        await FsService.createFile(allAppsPath, appFileName, appFileContent);
-        appFileItem = {
-          name: appFileName,
-          path: appFilePath,
-          type: 'file',
-          content: appFileContent,
-        };
-      }
-
-      const menuItems = await buildContextMenu({
-        clickedItem: appFileItem,
-        currentPath: allAppsPath,
-        refresh: refreshApps || (() => {}),
-        openApp: (appIdOrDef, data) => {
-          const appDef =
-            typeof appIdOrDef === 'string'
-              ? apps.find(a => a.id === appIdOrDef)
-              : appIdOrDef;
-          if (appDef) onOpenApp(appDef);
-        },
-        onRename: async (item, newName) => {
-          const oldPath = item.path;
-          const newPath = `${allAppsPath}/${newName}`;
-          try {
-            await FsService.renameItem(oldPath, newPath);
-            if (refreshApps) refreshApps();
-          } catch (renameError) {
-            console.error('Failed to rename app shortcut:', renameError);
-            alert('Failed to rename shortcut.');
-          }
-        },
-        onCopy: onCopy,
-        onCut: onCut,
-        onPaste: onPaste,
-        onOpen: () => onOpenApp(app),
-        isPasteDisabled: !clipboard,
-      });
-
-      setContextMenu({x: e.clientX, y: e.clientY, items: menuItems});
-    } catch (error) {
-      console.error(`Error building context menu for ${app.name}:`, error);
-    }
+    setContextMenu({x: e.clientX, y: e.clientY, items: menuItems});
   };
 
   const handleRestart = () => {
